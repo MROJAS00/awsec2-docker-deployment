@@ -50,15 +50,3 @@ This repository contains scripts and configurations to deploy Docker containers 
     ```sh
     terraform destroy
     ```
-
-## License
-
-This project is licensed under the MIT License.
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request.
-
-## Contact
-
-For any inquiries, please contact [your-email@example.com](mailto:your-email@example.com).
