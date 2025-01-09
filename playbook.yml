@@ -1,79 +1,79 @@
----
-- name: Install docker
+- name: Install Docker and dependencies
   hosts: all
   become: yes
   tasks:
-    - name: Ensure docker and libxcrypt-compat are installed
+    - name: Ensure Docker, libxcrypt-compat, and Python3-pip are installed
       yum: 
         name:
           - docker  # Install Docker
-          - libxcrypt-compat  # Install libxcrypt-compat to avoid issues with certain image versions
-          - python3-pip  # Install pip for Python3 (likely needed for managing Python dependencies)
-        update_cache: yes  # Update the yum package cache before installing
-        state: present  # Ensure the packages are installed
+          - libxcrypt-compat  # Install libxcrypt-compat for compatibility with certain Docker images
+          - python3-pip  # Install pip for Python3 (needed for managing Python dependencies)
+        update_cache: yes  # Ensure yum cache is updated before installing packages
+        state: present  # Ensure all specified packages are installed
 
-- name: Install docker compose V2 
+- name: Install Docker Compose V2
   hosts: all
   become: yes
   tasks:
     - name: Create directory for Docker CLI plugins
       file:
-        path: /usr/local/lib/docker/cli-plugins  # Directory for Docker CLI plugins
-        state: directory  # Create the directory if it doesn't exist
-        mode: '0755'  # Set permissions so Docker can access it
+        path: /usr/local/lib/docker/cli-plugins  # Ensure directory for Docker plugins exists
+        state: directory  # Create the directory if not present
+        mode: '0755'  # Set permissions for the directory
+
     - name: Download Docker Compose V2 binary
       get_url:
         url: https://github.com/docker/compose/releases/download/v2.18.0/docker-compose-linux-x86_64  # URL of the Docker Compose binary
-        dest: /usr/local/lib/docker/cli-plugins/docker-compose  # Destination for the Docker Compose binary
-        mode: '0755'  # Make the downloaded binary executable
-    - name: Make Docker Compose binary executable
-      file:
-        path: /usr/local/lib/docker/cli-plugins/docker-compose  # Path of the downloaded Docker Compose binary
-        mode: '0755'  # Ensure the binary is executable
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose  # Destination to store the binary
+        mode: '0755'  # Set permissions to make it executable
+
     - name: Verify Docker Compose installation
-      command: docker compose version  # Run `docker compose version` to check if Docker Compose was installed successfully
-      register: docker_compose_version  # Register the result of the command
-      ignore_errors: yes  # Ignore errors if the command fails
+      command: docker compose version  # Verify that Docker Compose was installed successfully
+      register: docker_compose_version  # Capture the output of the command
+      failed_when: docker_compose_version.rc != 0  # Fail the playbook if the command does not succeed
+
     - name: Show Docker Compose version
       debug:
-        msg: "{{ docker_compose_version.stdout }}"  # Print out the version of Docker Compose if the command was successful
-      when: docker_compose_version.rc == 0  # Only show the version if the command was successful
+        msg: "Docker Compose version: {{ docker_compose_version.stdout }}"  # Output the installed version of Docker Compose
 
-- name: Start docker 
+- name: Ensure Docker is running
   hosts: all
   become: yes
   tasks:
-    - name: Ensure docker is running 
+    - name: Start Docker service
       systemd:
-        name: docker  # Ensure the Docker service is started
-        state: started  # Start the Docker service if it isn't running
+        name: docker  # Docker service name
+        state: started  # Ensure Docker is started and running
 
-- name: Add all-user to docker group 
+- name: Manage Docker group for ec2-user
   hosts: all
   become: yes
   tasks:
-    - name: Add all-user to docker group 
+    - name: Add ec2-user to Docker group
       user: 
-        name: ec2-user  # Add the ec2-user to the Docker group
+        name: ec2-user  # Add user to Docker group
         groups: docker  # Add to the 'docker' group
-        append: yes  # Ensure that the user is added without removing them from other groups
-    - name: Reconnect to server session 
-      meta: reset_connection  # Re-establish the connection to the server after modifying the user's group membership
+        append: yes  # Ensure the user is added to the Docker group without removing other groups
 
-- name: Start docker containers from docker-compose file
+    - name: Reconnect to server session after group change
+      meta: reset_connection  # Re-establish SSH session to apply new group memberships
+
+- name: Deploy Docker containers using Docker Compose
   hosts: all
   vars_files:
-    - project-vars  # Load variables from the 'project-vars' file
+    - project-vars  # Load project-specific variables (e.g., path to docker-compose.yaml)
   tasks:
-    - name: Copy Docker compose
+    - name: Copy Docker Compose file to server
       copy: 
-        src: ./docker-compose.yaml  # Copy the docker-compose.yaml file from the local machine to the remote server
-        dest: /home/ec2-user  # Destination path on the remote server
-    - name: Install docker python module
-      pip:
-        name: 
-          - docker  # Install the Docker Python module
-          - docker-compose  # Install the Docker Compose Python module (for programmatic control)
-    - name: Start containers from compose 
-      community.docker.docker_compose_v2:
+        src: ./docker-compose.yaml  # Path to the local docker-compose.yaml file
+        dest: /home/ec2-user/docker-compose.yaml  # Destination on the remote server
+
+    - name: Install Docker Python modules
+      ansible.builtin.pip:  # Use the built-in pip module to install Python dependencies
+        name:
+          - docker  # Docker Python module
+          - docker-compose  # Docker Compose Python module for programmatic control
+
+    - name: Start Docker containers from compose file
+      community.docker.docker_compose_v2:  # Use the Docker Compose module to start containers
         project_src: /home/ec2-user  # Path to the directory containing the docker-compose.yaml file
