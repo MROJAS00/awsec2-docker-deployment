@@ -39,11 +39,6 @@ This repository contains scripts and configurations to deploy Docker containers 
     ssh -i path/to/your-key.pem ec2-user@your-ec2-public-dns
     ```
 
-3. **Run Docker container:**
-    ```sh
-    docker run -d -p 80:80 your-docker-image
-    ```
-
 ## Cleanup
 
 1. **Destroy the infrastructure:**
