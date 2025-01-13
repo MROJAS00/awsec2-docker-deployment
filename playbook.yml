@@ -67,6 +67,12 @@
       copy: 
         src: ./docker-compose.yaml  # Path to the local docker-compose.yaml file
         dest: /home/ec2-user/docker-compose.yaml  # Destination on the remote server
+        
+    - name: Copy html folder to server
+      copy:
+        src: ./html/  # Local path to the html folder
+        dest: /home/ec2-user/html/  # Destination folder on the EC2 instance
+        mode: '0755'  # Set permissions for the folder and its contents
 
     - name: Install Docker Python modules
       ansible.builtin.pip:  # Use the built-in pip module to install Python dependencies
