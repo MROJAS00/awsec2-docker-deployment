@@ -10,3 +10,8 @@ variable "instance_type" {
   type        = string
   default     = "t2.micro"  # Low-cost instance type for testing
 }
+
+variable "allowed_ssh_cidr" {
+  description = "CIDR block allowed to access SSH"
+  default     = "0.0.0.0/0" # Replace with your specific CIDR block for better security
+}
