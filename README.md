@@ -1,47 +1,20 @@
-# AWS EC2 Docker Deployment
+# Infrastructure Deployment with Terraform and Ansible
 
-This repository contains scripts and configurations to deploy Docker containers on AWS EC2 instances.
+This project demonstrates how to deploy an EC2 instance using Terraform and then deploy Docker Compose on that instance using Ansible, executed by Terraform.
 
 ## Prerequisites
 
-- AWS Account
-- AWS CLI configured
-- Docker installed
-- Terraform installed
+Before you begin, ensure you have the following installed on your local machine:
 
-## Setup
+- [Terraform](https://www.terraform.io/downloads.html)
+- [Ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
+- [AWS CLI](https://aws.amazon.com/cli/)
 
-1. **Clone the repository:**
-    ```sh
-    git clone https://github.com/yourusername/awsec2-docker-deployment.git
-    cd awsec2-docker-deployment
-    ```
+## Deployment Steps
 
-2. **Configure AWS CLI:**
-    ```sh
-    aws configure
-    ```
+### 1. Configure AWS CLI
 
-3. **Initialize Terraform:**
-    ```sh
-    terraform init
-    ```
+First, configure your AWS CLI with your credentials:
 
-## Deployment
-
-1. **Create an EC2 instance:**
-    ```sh
-    terraform apply
-    ```
-
-2. **SSH into the EC2 instance:**
-    ```sh
-    ssh -i path/to/your-key.pem ec2-user@your-ec2-public-dns
-    ```
-
-## Cleanup
-
-1. **Destroy the infrastructure:**
-    ```sh
-    terraform destroy
-    ```
+```sh
+aws configure
